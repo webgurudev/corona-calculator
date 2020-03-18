@@ -4,7 +4,7 @@ import streamlit as st
 
 import graphing
 import models
-from data import constants
+from data import constants, preprocessing
 from interface import css
 from interface.elements import reported_vs_true_cases
 from utils import COLOR_MAP, generate_html, graph_warning
@@ -268,9 +268,9 @@ def run_app():
         f"not take into account any special measures that may have been taken in the last few months."
     )
 
-    # st.markdown(
-    #     f"At peak, ** {percent_ventilators_at_peak:.1f} % ** of people who need a ventilator have one"
-    # )
+    df = preprocessing.process_mortality_by_demographics()
+    fig = graphing.age_segregated_hospitalization_and_mortality(df)
+    st.write(fig)
 
 
 if __name__ == "__main__":
