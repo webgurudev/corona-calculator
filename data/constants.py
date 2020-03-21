@@ -5,13 +5,13 @@ For sources, please visit https://www.notion.so/Modelling-d650e1351bf34ceeb97c82
 
 import datetime
 import pickle
-from io import StringIO
 from pathlib import Path
 
 import pandas as pd
 
 from data.preprocessing import preprocess_bed_data
-from s3_utils import download_file, S3_DISEASE_DATA_OBJ_NAME
+from s3_utils import download_file_from_s3, S3_DISEASE_DATA_OBJ_NAME
+from fetch_live_data import download_data
 
 
 _DATA_DIR = Path(__file__).parent
@@ -25,8 +25,14 @@ AGE_DATA = pd.read_csv(_AGE_DATA_PATH, index_col="Age Group")
 
 
 def build_country_data(demographic_data=DEMOGRAPHIC_DATA, bed_data=BED_DATA):
-    data_dict_pkl_bytes, last_modified = download_file(S3_DISEASE_DATA_OBJ_NAME)
-    data_dict = pickle.loads(data_dict_pkl_bytes)
+    # Try to download from S3, else download from JHU
+    objects = download_file_from_s3(S3_DISEASE_DATA_OBJ_NAME)
+    if objects is None:
+        data_dict = download_data()
+        last_modified = datetime.datetime.now()
+    else:
+        data_dict_pkl_bytes, last_modified = objects
+        data_dict = pickle.loads(data_dict_pkl_bytes)
 
     full_disease_data = data_dict["full_table"]
     latest_disease_data = data_dict["latest_table"]

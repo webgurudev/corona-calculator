@@ -57,22 +57,30 @@ def get_full_and_latest_table(csv_filepaths: List[Path]):
     return total_df, latest_date_df
 
 
-if __name__ == "__main__":
-    # Clone the JHU COVID GitHub repo (takes about a minute)
+def download_data():
+    """
+     Clone the JHU COVID GitHub repo (takes about a minute) and return paths to CSVs.
+    """
     cmd = ["git", "clone", GITHUB_REPO]
     execute_shell_command(cmd)
 
     # Go to daily reports directory and fetch all CSV files
     csv_filepaths = list(Path(DAILY_REPORTS_DIRPATH).glob("*.csv"))
+
     # Get the full and latest table
     full_df, latest_df = get_full_and_latest_table(csv_filepaths)
-
     save_dict_pickle = {
         "full_table": full_df,
         "latest_table": latest_df
     }
+    # # Remove GitHub repo directory
+    shutil.rmtree(REPO_DIRPATH)
+    return save_dict_pickle
 
-    pickle_byte_obj = pickle.dumps(save_dict_pickle)
+
+if __name__ == "__main__":
+    data_object = download_data()
+    pickle_byte_obj = pickle.dumps(data_object)
 
     success = upload_file(pickle_byte_obj, S3_DISEASE_DATA_OBJ_NAME)
 
@@ -81,6 +89,4 @@ if __name__ == "__main__":
     else:
         print("Push to S3 failed")
 
-    # # Remove GitHub repo directory
-    shutil.rmtree(REPO_DIRPATH)
     print("Clean up done.")

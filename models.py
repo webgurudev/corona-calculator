@@ -192,7 +192,6 @@ class SIRModel:
         # Days with no change in I
         days_to_clip = [I[-i] == I[-i - 1] for i in range(1, len(I))]
         index_to_clip = days_to_clip.index(False)
-        print(index_to_clip)
 
         return {
             "Susceptible": S[:-index_to_clip],
